@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 -- // HỆ THỐNG LƯU TRỮ PREMIUM (AUTO-SAVE)
 local function SavePremiumStatus()
     if writefile then
-        writefile("QuanHub_Premium_V12.txt", "Unlocked")
+        writefile("QuanHub_Premium_V13.txt", "Unlocked")
     end
 end
 
@@ -16,7 +16,7 @@ end
 
 -- // CẤU HÌNH CỬA SỔ
 local Window = Rayfield:CreateWindow({
-   Name = "Quân Hub | V1.3",
+   Name = "Quân Hub | V1.2",
    LoadingTitle = "Đang khởi tạo hệ thống chuyên sâu...",
    LoadingSubtitle = "Phát triển bởi Quan_blacklock",
    ConfigurationSaving = {
@@ -49,7 +49,7 @@ local PremiumTab = Window:CreateTab("Premium", 4483362458)
 local ServerTab = Window:CreateTab("Máy Chủ", 4483362458)
 local SettingTab = Window:CreateTab("Cài Đặt", 4483345998)
 
---- [[ TAB CHÍNH: THẬP ĐẠI TUYỆT KỸ (1-11) ]] ---
+--- [[ TAB CHÍNH: THẬP NHỊ TUYỆT KỸ (1-12) ]] ---
 MainTab:CreateSection("Vận Động & Gian Lận")
 
 MainTab:CreateButton({Name = "1. Nhảy Vô Hạn", Callback = function()
@@ -110,57 +110,42 @@ MainTab:CreateButton({Name = "10. Siêu Nhảy Cao (Lực: 200)", Callback = fun
     end
 end})
 
--- // TÍNH NĂNG THỨ 11: MENU DỊCH CHUYỂN
 MainTab:CreateButton({
     Name = "11. Menu Dịch Chuyển (Lưu Vị Trí)", 
     Callback = function()
         local plr = Players.LocalPlayer
         local savedPos = nil
-        
         if not plr:WaitForChild("PlayerGui"):FindFirstChild("RightMenu") then
-            local gui = Instance.new("ScreenGui")
+            local gui = Instance.new("ScreenGui", plr.PlayerGui)
             gui.Name = "RightMenu"
             gui.ResetOnSpawn = false
-            gui.Parent = plr.PlayerGui
-            
             local frame = Instance.new("Frame", gui)
             frame.Size = UDim2.new(0,180,0,180)
             frame.Position = UDim2.new(1,-190,0.35,0)
             frame.BackgroundColor3 = Color3.fromRGB(45,45,45)
-            frame.BorderSizePixel = 0
-            frame.Active = true
-            frame.Draggable = true
-            
+            frame.Active = true frame.Draggable = true
             local title = Instance.new("TextLabel", frame)
             title.Size = UDim2.new(1,0,0,35)
             title.BackgroundColor3 = Color3.fromRGB(30,30,30)
-            title.Text = "MENU TP"
-            title.Font = Enum.Font.GothamBold
-            title.TextSize = 20
-            title.TextColor3 = Color3.new(1,1,1)
-            
+            title.Text = "MENU TP" title.TextColor3 = Color3.new(1,1,1)
+            title.Font = Enum.Font.GothamBold title.TextSize = 20
             local saveBtn = Instance.new("TextButton", frame)
             saveBtn.Size = UDim2.new(1,-20,0,40)
             saveBtn.Position = UDim2.new(0,10,0,45)
             saveBtn.Text = "Lưu vị trí"
-            
             local tpBtn = Instance.new("TextButton", frame)
             tpBtn.Size = UDim2.new(1,-20,0,40)
             tpBtn.Position = UDim2.new(0,10,0,95)
             tpBtn.Text = "Dịch chuyển"
-            
             saveBtn.MouseButton1Click:Connect(function()
-                local char = plr.Character
-                if char then
-                    savedPos = char:WaitForChild("HumanoidRootPart").CFrame
+                if plr.Character then
+                    savedPos = plr.Character:WaitForChild("HumanoidRootPart").CFrame
                     Rayfield:Notify({Title = "Thành công", Content = "Đã lưu vị trí!", Duration = 2})
                 end
             end)
-            
             tpBtn.MouseButton1Click:Connect(function()
-                local char = plr.Character
-                if char and savedPos then
-                    char:WaitForChild("HumanoidRootPart").CFrame = savedPos
+                if plr.Character and savedPos then
+                    plr.Character:WaitForChild("HumanoidRootPart").CFrame = savedPos
                 else
                     Rayfield:Notify({Title = "Lỗi", Content = "Chưa lưu vị trí!", Duration = 2})
                 end
@@ -169,10 +154,22 @@ MainTab:CreateButton({
     end
 })
 
+-- // TÍNH NĂNG THỨ 12: TUA NGƯỢC THỜI GIAN
+MainTab:CreateButton({
+    Name = "12. Tua Ngược Thời Gian (Flashback) ⏳",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Flashback-Script-26745"))()
+        Rayfield:Notify({
+            Title = "Quân Hub",
+            Content = "Đã kích hoạt Tua Ngược Thời Gian!",
+            Duration = 3
+        })
+    end
+})
+
 --- [[ HÀM TẢI TÍNH NĂNG PREMIUM ]] ---
 local function LoadPremiumFeatures()
     PremiumTab:CreateSection("🔥 Tuyệt Kỹ VIP")
-
     PremiumTab:CreateToggle({
         Name = "1. Chế Độ Bán Bất Tử (Semi-God)",
         CurrentValue = false,
@@ -190,7 +187,6 @@ local function LoadPremiumFeatures()
             end)
         end,
     })
-
     PremiumTab:CreateButton({
         Name = "2. Tìm Server Ít Người (Vắng)",
         Callback = function()
@@ -204,7 +200,6 @@ local function LoadPremiumFeatures()
             end
         end,
     })
-
     PremiumTab:CreateButton({
         Name = "3. Kích Hoạt Shader Menu (Icon)",
         Callback = function()
@@ -231,12 +226,9 @@ local function LoadPremiumFeatures()
             MainButton.MouseButton1Click:Connect(function() ShaderFrame.Visible = not ShaderFrame.Visible end)
             CreateShaderOpt("HDR Tươi Màu", function() local b = Instance.new("ColorCorrectionEffect", Lighting) b.Contrast = 0.2 b.Saturation = 0.5 end)
             CreateShaderOpt("Hiệu Ứng Bloom", function() Instance.new("BloomEffect", Lighting).Intensity = 1 end)
-            CreateShaderOpt("Hiệu Ứng DOF", function() Instance.new("DepthOfFieldEffect", Lighting).FarIntensity = 0.5 end)
             CreateShaderOpt("Xóa Shader", function() for _, v in pairs(Lighting:GetChildren()) do if v:IsA("PostEffect") or v:IsA("ColorCorrectionEffect") then v:Destroy() end end end)
-            Rayfield:Notify({Title = "Shader", Content = "Đã hiện Icon Shader!", Duration = 3})
         end,
     })
-
     PremiumTab:CreateSection("⚡ Chỉ Số VIP")
     PremiumTab:CreateSlider({
         Name = "Tốc Độ Chạy (Speed)",
@@ -245,18 +237,12 @@ local function LoadPremiumFeatures()
         CurrentValue = 16,
         Callback = function(v) if player.Character then player.Character.Humanoid.WalkSpeed = v end end,
     })
-    
     PremiumTab:CreateSlider({
         Name = "Lực Nhảy (Jump Power)",
         Range = {50, 800},
         Increment = 1,
         CurrentValue = 50,
-        Callback = function(v) 
-            if player.Character then 
-                player.Character.Humanoid.JumpPower = v 
-                player.Character.Humanoid.UseJumpPower = true 
-            end 
-        end,
+        Callback = function(v) if player.Character then player.Character.Humanoid.JumpPower = v player.Character.Humanoid.UseJumpPower = true end end,
     })
 end
 
@@ -293,4 +279,4 @@ SettingTab:CreateSection("Thông Tin")
 SettingTab:CreateLabel("Chủ sở hữu: Quan_blacklock")
 SettingTab:CreateLabel("Phiên bản: Stable V1.3 (Final)")
 
-Rayfield:Notify({Title = "Quân Hub V1.3", Content = "Chào Admin Iro! Đã load 11 tính năng chính.", Duration = 5})
+Rayfield:Notify({Title = "Quân Hub V1.3", Content = "Chào Admin Iro! Đã sẵn sàng 12 tuyệt kỹ.", Duration = 5})
