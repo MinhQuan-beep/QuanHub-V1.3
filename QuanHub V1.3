@@ -16,12 +16,12 @@ end
 
 -- // CẤU HÌNH CỬA SỔ
 local Window = Rayfield:CreateWindow({
-   Name = "Quân Hub | V1.2",
+   Name = "Quân Hub | V1.3",
    LoadingTitle = "Đang khởi tạo hệ thống chuyên sâu...",
    LoadingSubtitle = "Phát triển bởi Quan_blacklock",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "QuanHub_V12",
+      FolderName = "QuanHub_V13",
       FileName = "MainConfig"
    },
    KeySystem = true,
@@ -156,14 +156,9 @@ MainTab:CreateButton({
 
 -- // TÍNH NĂNG THỨ 12: TUA NGƯỢC THỜI GIAN
 MainTab:CreateButton({
-    Name = "12. Tua Ngược Thời Gian (Flashback) ⏳",
+    Name = "12. Tua Ngược Thời Gian (Flashback)",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Flashback-Script-26745"))()
-        Rayfield:Notify({
-            Title = "Quân Hub",
-            Content = "Đã kích hoạt Tua Ngược Thời Gian!",
-            Duration = 3
-        })
     end
 })
 
@@ -264,7 +259,7 @@ SettingTab:CreateInput({
    PlaceholderText = "Mã xác thực...",
    RemoveTextAfterFocusLost = true,
    Callback = function(Text)
-      if Text == "QuanHubV1.3" then
+      if Text == "QuanHubV1.2" then
          if not IsPremiumUnlocked() then
             SavePremiumStatus()
             Rayfield:Notify({Title = "Thành Công!", Content = "Premium đã mở khóa!", Duration = 5})
@@ -279,4 +274,4 @@ SettingTab:CreateSection("Thông Tin")
 SettingTab:CreateLabel("Chủ sở hữu: Quan_blacklock")
 SettingTab:CreateLabel("Phiên bản: Stable V1.3 (Final)")
 
-Rayfield:Notify({Title = "Quân Hub V1.3", Content = "Chào Admin Iro! Đã sẵn sàng 12 tuyệt kỹ.", Duration = 5})
+Rayfield:Notify({Title = "Quân Hub V1.3", Content = "Đã cập nhật đủ 12 tính năng chính cho Iro.", Duration = 5})
