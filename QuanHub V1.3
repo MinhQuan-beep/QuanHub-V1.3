@@ -1,98 +1,156 @@
 -- [[ ================================================================= ]] --
--- [[                       QUÂN HUB PHIÊN BẢN V1.3                      ]] --
+-- [[                       QUÂN HUB PHIÊN BẢN V1.3.5                     ]] --
 -- [[               PHÁT TRIỂN ĐỘC QUYỀN BỞI: QUAN_BLACKLOCK            ]] --
--- [[        CẤU TRÚC: MODULAR PRO - HIDDEN KEYBIND - ANTI-DETECTOR      ]] --
+-- [[        CẤU TRÚC: 16 FEATURES - FULL DETAIL - NO SHORTCUTS          ]] --
 -- [[ ================================================================= ]] --
 
--- // KHỞI TẠO THƯ VIỆN GIAO DIỆN CAO CẤP
+-- // KHỞI TẠO THƯ VIỆN GIAO DIỆN
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 ---------------------------------------------------------------------------
 -- [ PHẦN 1: QUẢN LÝ DỊCH VỤ HỆ THỐNG ]
 ---------------------------------------------------------------------------
-local CoreServices = setmetatable({}, {
-    __index = function(self, serviceName)
-        local success, service = pcall(game.GetService, game, serviceName)
-        if success and service then
-            self[serviceName] = service
-            return service
-        end
-        return nil
-    end
-})
-
-local Players = CoreServices.Players
-local RunService = CoreServices.RunService
-local UIS = CoreServices.UserInputService
-local TeleportService = CoreServices.TeleportService
-local HttpService = CoreServices.HttpService
-local Lighting = CoreServices.Lighting
-local VirtualUser = CoreServices.VirtualUser
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+local VirtualUser = game:GetService("VirtualUser")
+local ContextActionService = game:GetService("ContextActionService")
 local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 ---------------------------------------------------------------------------
--- [ PHẦN 2: QUẢN LÝ TRẠNG THÁI HỆ THỐNG ]
+-- [ PHẦN 2: HÀM TIỆN ÍCH (HELPER FUNCTIONS) ]
 ---------------------------------------------------------------------------
-local QuanHub_Registry = {
-    Settings = {
-        Noclip = false,
-        JumpInfinity = false,
-        AntiVoid = false,
-        AntiBan = false,
-        HitboxSize = 1,
-        Speed = 16,
-        JumpPower = 50,
-    },
-    Meta = {
-        Version = "1.3.0",
-        Dev = "Quan_blacklock",
-        Tag = "[QUÂN HUB]",
-        HiddenKey = Enum.KeyCode.E -- PHÍM TẮT BÍ MẬT LÀ E
-    }
-}
-
----------------------------------------------------------------------------
--- [ PHẦN 3: HÀM HỖ TRỢ CHIẾN THUẬT ]
----------------------------------------------------------------------------
-local function GlobalNotify(title, content)
+local function Notify(title, content)
     Rayfield:Notify({
         Title = title,
         Content = content,
-        Duration = 6,
+        Duration = 5,
         Image = 4483362458,
     })
 end
 
-local function SecureRun(name, func)
-    local s, e = pcall(func)
-    if not s then
-        warn(QuanHub_Registry.Meta.Tag .. " Lỗi: " .. name .. " | " .. tostring(e))
+---------------------------------------------------------------------------
+-- [ PHẦN 3: LOGIC WASD MOBILE ĐỘC QUYỀN CỦA IRO ]
+---------------------------------------------------------------------------
+local function ActivateCustomWASD()
+    -- 1. Ẩn cụm di chuyển mặc định nhưng GIỮ LẠI nút Nhảy
+    local function hideDefaultMovementOnly()
+        local touchGui = PlayerGui:FindFirstChild("TouchGui")
+        if touchGui then
+            local touchControl = touchGui:FindFirstChild("TouchControlFrame")
+            if touchControl then
+                -- Ẩn DynamicThumbstick (vòng tròn di chuyển)
+                local joystick = touchControl:FindFirstChild("DynamicThumbstickFrame") or touchControl:FindFirstChild("JoystickFrame")
+                if joystick then joystick.Visible = false end
+                
+                -- Đảm bảo nút Nhảy (JumpButton) vẫn hiện
+                local jumpButton = touchControl:FindFirstChild("JumpButton")
+                if jumpButton then jumpButton.Visible = true end
+            end
+        end
     end
+
+    hideDefaultMovementOnly()
+    PlayerGui.ChildAdded:Connect(hideDefaultMovementOnly)
+
+    -- 2. Dọn dẹp bản cũ nếu có
+    if PlayerGui:FindFirstChild("CustomWASD_Iro") then
+        PlayerGui.CustomWASD_Iro:Destroy()
+    end
+
+    -- 3. Tạo GUI cho cụm WASD
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CustomWASD_Iro"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = PlayerGui
+
+    -- Hàm tạo nút di chuyển tròn
+    local function createMoveBtn(name, text, pos, size)
+        local btn = Instance.new("TextButton")
+        btn.Name = name
+        btn.Text = text
+        btn.Position = pos
+        btn.Size = size
+        btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        btn.BackgroundTransparency = 0.5
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.SourceSansBold
+        btn.TextSize = 20
+        btn.AutoButtonColor = true
+        btn.Parent = screenGui
+        
+        local uiCorner = Instance.new("UICorner")
+        uiCorner.CornerRadius = UDim.new(1, 0) 
+        uiCorner.Parent = btn
+        
+        return btn
+    end
+
+    -- 4. Cấu hình vị trí cụm WASD (Cao và Nhỏ)
+    local yPos = 0.6 
+    local centerLeft = UDim2.new(0, 130, yPos, 0) 
+    local moveSize = UDim2.new(0, 55, 0, 55)
+
+    local btnW = createMoveBtn("W", "W", centerLeft + UDim2.new(0, -27, 0, -65), moveSize)
+    local btnS = createMoveBtn("S", "S", centerLeft + UDim2.new(0, -27, 0, 35), moveSize)
+    local btnA = createMoveBtn("A", "A", centerLeft + UDim2.new(0, -85, 0, -15), moveSize)
+    local btnD = createMoveBtn("D", "D", centerLeft + UDim2.new(0, 30, 0, -15), moveSize)
+
+    -- 5. Logic điều khiển nhân vật
+    local moveState = {F = 0, B = 0, L = 0, R = 0}
+
+    local function setupControl(btn, stateKey, val)
+        btn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                moveState[stateKey] = val
+            end
+        end)
+        btn.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                moveState[stateKey] = 0
+            end
+        end)
+    end
+
+    setupControl(btnW, "F", 1)
+    setupControl(btnS, "B", 1)
+    setupControl(btnA, "L", 1)
+    setupControl(btnD, "R", 1)
+
+    RunService.RenderStepped:Connect(function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            local hum = LocalPlayer.Character.Humanoid
+            hum:Move(Vector3.new(moveState.R - moveState.L, 0, moveState.B - moveState.F), true)
+        end
+    end)
 end
 
 ---------------------------------------------------------------------------
--- [ PHẦN 4: KHỞI TẠO CỬA SỔ GIAO DIỆN (KHÓA HƯỚNG DẪN) ]
+-- [ PHẦN 4: KHỞI TẠO CỬA SỔ CHÍNH ]
 ---------------------------------------------------------------------------
 local Window = Rayfield:CreateWindow({
-   Name = "Quân Hub | Public Elite V1.3",
-   LoadingTitle = "Hệ Thống Quân Hub Đang Chiếm Quyền Kiểm Soát...",
+   Name = "Quân Hub | Public Elite V1.3.5",
+   LoadingTitle = "Đang Đồng Bộ Hóa Dữ Liệu...",
    LoadingSubtitle = "Phát triển bởi Quan_blacklock",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "QuanHub_V13_Core",
-      FileName = "MainConfig"
+      FolderName = "QuanHub_V135",
+      FileName = "Main"
    },
    KeySystem = true,
    KeySettings = {
-      Title = "Xác Minh Quyền Truy Cập",
-      Subtitle = "Nhập mã để kích hoạt Quân Hub",
+      Title = "Xác Minh Chủ Sở Hữu",
+      Subtitle = "Nhập Key để bắt đầu",
       Note = "Mã: Top1_Script",
-      FileName = "QuanHub_Auth",
+      FileName = "QuanHubKey",
       SaveKey = true,
       Key = {"Top1_Script"} 
    },
-   -- THIẾT LẬP PHÍM E ĐỂ ĐÓNG MỞ (KHÔNG HIỆN THÔNG BÁO)
-   Keybind = "E" 
+   Keybind = "E" -- PHÍM E BÍ MẬT ĐỂ ĐÓNG/MỞ
 })
 
 ---------------------------------------------------------------------------
@@ -103,31 +161,33 @@ local ExtraTab = Window:CreateTab("Tab Phụ", 4483362458)
 local SettingTab = Window:CreateTab("Cài Đặt", 4483345998)
 
 ---------------------------------------------------------------------------
--- [[ 6. TAB CHÍNH: 15 TÍNH NĂNG ]]
+-- [[ 6. TAB CHÍNH: 16 TÍNH NĂNG CHI TIẾT ]]
 ---------------------------------------------------------------------------
-MainTab:CreateSection("Công Cụ Gian Lận Tổng Hợp")
+MainTab:CreateSection("Công Cụ Gian Lận")
 
+-- 01. Nhảy Vô Hạn
 MainTab:CreateToggle({
     Name = "Nhảy Vô Hạn (Infinity Jump)",
     CurrentValue = false,
     Callback = function(v)
-        QuanHub_Registry.Settings.JumpInfinity = v
+        _G.InfJump = v
         UIS.JumpRequest:Connect(function()
-            if QuanHub_Registry.Settings.JumpInfinity and LocalPlayer.Character then
+            if _G.InfJump and LocalPlayer.Character then
                 LocalPlayer.Character:FindFirstChildOfClass('Humanoid'):ChangeState("Jumping")
             end
         end)
     end,
 })
 
+-- 02. Xuyên Tường
 MainTab:CreateToggle({
-    Name = "Xuyên Tường (Noclip Mode)",
+    Name = "Xuyên Tường (Noclip)",
     CurrentValue = false,
     Callback = function(v)
-        QuanHub_Registry.Settings.Noclip = v
+        _G.Noclip = v
         RunService.Stepped:Connect(function()
-            if QuanHub_Registry.Settings.Noclip and LocalPlayer.Character then
-                for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if _G.Noclip and LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
                     if part:IsA("BasePart") then part.CanCollide = false end
                 end
             end
@@ -135,15 +195,15 @@ MainTab:CreateToggle({
     end,
 })
 
+-- 03. ESP Người Chơi
 MainTab:CreateButton({
     Name = "Hiện Người Chơi (Universal ESP)",
     Callback = function()
-        SecureRun("ESP", function()
-            loadstring(game:HttpGet("https://gist.githubusercontent.com/ardenmasster/9ba098c784ccc23a159adffe4730137e/raw/3031e96cef74f70f57c2eea9ed86ea8045ea7867/gistfile1.txt"))()
-        end)
+        loadstring(game:HttpGet("https://gist.githubusercontent.com/ardenmasster/9ba098c784ccc23a159adffe4730137e/raw/3031e96cef74f70f57c2eea9ed86ea8045ea7867/gistfile1.txt"))()
     end
 })
 
+-- 04. Tàng Hình
 MainTab:CreateButton({
     Name = "Tàng Hình (Invisible)",
     Callback = function()
@@ -151,6 +211,7 @@ MainTab:CreateButton({
     end
 })
 
+-- 05. Đi Bộ Trên Không
 MainTab:CreateButton({
     Name = "Đi Bộ Trên Không (Float)",
     Callback = function()
@@ -158,6 +219,7 @@ MainTab:CreateButton({
     end
 })
 
+-- 06. Hệ Thống Bay
 MainTab:CreateButton({
     Name = "Hệ Thống Bay (Fly Control)",
     Callback = function()
@@ -165,6 +227,7 @@ MainTab:CreateButton({
     end
 })
 
+-- 07. Vật Phẩm Jerk Off
 MainTab:CreateButton({
     Name = "Vật Phẩm Jerk Off",
     Callback = function()
@@ -172,6 +235,7 @@ MainTab:CreateButton({
     end
 })
 
+-- 08. Chống Treo Máy
 MainTab:CreateButton({
     Name = "Chống Treo Máy (Anti-AFK)",
     Callback = function()
@@ -180,10 +244,11 @@ MainTab:CreateButton({
             task.wait(1)
             VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
         end)
-        GlobalNotify("Hệ Thống", "Anti-AFK đang bảo vệ tài khoản.")
+        Notify("Hệ Thống", "Anti-AFK đã kích hoạt.")
     end
 })
 
+-- 09. Làm Sáng Map
 MainTab:CreateButton({
     Name = "Làm Sáng Map (FullBright)",
     Callback = function()
@@ -193,6 +258,7 @@ MainTab:CreateButton({
     end
 })
 
+-- 10. Siêu Nhảy Cao
 MainTab:CreateButton({
     Name = "Siêu Nhảy Cao (Power Boost)",
     Callback = function()
@@ -203,26 +269,25 @@ MainTab:CreateButton({
     end
 })
 
+-- 11. Lưu Vị Trí
 MainTab:CreateButton({
     Name = "Lưu & Dịch Chuyển (Position)",
     Callback = function()
         local savedPos = nil
-        local gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+        local gui = Instance.new("ScreenGui", PlayerGui)
         local frame = Instance.new("Frame", gui)
         frame.Size = UDim2.new(0, 150, 0, 80)
         frame.Position = UDim2.new(0.5, -75, 0.5, -40)
         frame.Draggable = true
         frame.Active = true
         frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        
         local b1 = Instance.new("TextButton", frame)
         b1.Size = UDim2.new(1, 0, 0.5, 0)
         b1.Text = "LƯU VỊ TRÍ"
         b1.MouseButton1Click:Connect(function() 
             savedPos = LocalPlayer.Character.HumanoidRootPart.CFrame 
-            GlobalNotify("Quân Hub", "Tọa độ đã được ghi nhớ.")
+            Notify("Quân Hub", "Tọa độ đã lưu.")
         end)
-        
         local b2 = Instance.new("TextButton", frame)
         b2.Size = UDim2.new(1, 0, 0.5, 0)
         b2.Position = UDim2.new(0, 0, 0.5, 0)
@@ -231,6 +296,7 @@ MainTab:CreateButton({
     end
 })
 
+-- 12. Tua Ngược Thời Gian
 MainTab:CreateButton({
     Name = "Tua Ngược (Time Warp)",
     Callback = function()
@@ -238,29 +304,28 @@ MainTab:CreateButton({
     end
 })
 
+-- 13. Chống Rơi Map
 MainTab:CreateToggle({
     Name = "Chống Rơi Map (Anti Void)",
     CurrentValue = false,
     Callback = function(v)
-        QuanHub_Registry.Settings.AntiVoid = v
+        _G.AntiVoid = v
         spawn(function()
-            while QuanHub_Registry.Settings.AntiVoid do
-                pcall(function()
-                    if LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart.Position.Y < -50 then
-                        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 100, 0)
-                    end
-                end)
+            while _G.AntiVoid do
+                if LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart.Position.Y < -50 then
+                    LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 100, 0)
+                end
                 task.wait(0.2)
             end
         end)
     end,
 })
 
+-- 14. Bảo Vệ Anti-Ban
 MainTab:CreateToggle({
     Name = "Bảo Vệ Anti-Kick (Anti Ban)",
     CurrentValue = false,
     Callback = function(v)
-        QuanHub_Registry.Settings.AntiBan = v
         if v then
             local raw = getrawmetatable(game)
             setreadonly(raw, false)
@@ -269,105 +334,70 @@ MainTab:CreateToggle({
                 if getnamecallmethod() == "Kick" then return nil end
                 return old(self, ...)
             end)
-            GlobalNotify("Bảo mật", "Đã khóa giao thức Anti-Kick.")
+            Notify("Bảo mật", "Anti-Kick hoạt động.")
         end
     end,
 })
 
--- 15. Coolkid (VỊ TRÍ 15)
+-- 15. Coolkid
 MainTab:CreateButton({
     Name = "Coolkid (Button)",
     Callback = function()
-        SecureRun("Coolkid", function()
-            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-coolkid-gui-15453"))()
-        end)
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-coolkid-gui-15453"))()
+    end
+})
+
+-- 16. WASD MOBILE BY IRO (TÍNH NĂNG MỚI)
+MainTab:CreateButton({
+    Name = "Kích Hoạt WASD Mobile (Iro Custom)",
+    Callback = function()
+        ActivateCustomWASD()
+        Notify("Thành công", "Đã bật phím WASD Mobile tùy chỉnh!")
     end
 })
 
 ---------------------------------------------------------------------------
--- [[ 7. TAB PHỤ: GIAN LẬN VÀ CHIẾN ĐẤU ]]
+-- [[ 7. TAB PHỤ: THÔNG SỐ CHI TIẾT ]]
 ---------------------------------------------------------------------------
-ExtraTab:CreateSection("Gian lận và chiến đấu")
-
-ExtraTab:CreateButton({
-    Name = "Sever hop",
-    Callback = function()
-        GlobalNotify("Máy chủ", "Đang chuyển khu vực...")
-        local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
-        local Raw = game:HttpGet(Api)
-        local Data = HttpService:JSONDecode(Raw)
-        local Target = Data.data[math.random(1, #Data.data)]
-        if Target then TeleportService:TeleportToPlaceInstance(game.PlaceId, Target.id, LocalPlayer) end
-    end
-})
-
-ExtraTab:CreateButton({
-    Name = "Sever hop (vắng)",
-    Callback = function()
-        GlobalNotify("Máy chủ", "Đang tìm máy chủ tối ưu...")
-        local function GetSmall()
-            local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-            local Raw = game:HttpGet(Api)
-            local Data = HttpService:JSONDecode(Raw)
-            for _, s in pairs(Data.data) do
-                if s.playing < s.maxPlayers and s.playing > 0 then return s.id end
-            end
-        end
-        local sid = GetSmall()
-        if sid then TeleportService:TeleportToPlaceInstance(game.PlaceId, sid, LocalPlayer) end
-    end
-})
-
-ExtraTab:CreateSection("Chỉ Số Sức Mạnh")
+ExtraTab:CreateSection("Điều Chỉnh Chỉ Số")
 
 ExtraTab:CreateSlider({
     Name = "Tốc Độ Di Chuyển (Speed)",
     Range = {16, 500},
     Increment = 1,
     CurrentValue = 16,
-    Callback = function(v) 
-        if LocalPlayer.Character then LocalPlayer.Character.Humanoid.WalkSpeed = v end 
-    end
+    Callback = function(v) if LocalPlayer.Character then LocalPlayer.Character.Humanoid.WalkSpeed = v end end
 })
 
 ExtraTab:CreateSlider({
     Name = "Độ Cao Nhảy (Jump Power)",
-    Range = {50, 800},
+    Range = {50, 500},
     Increment = 1,
     CurrentValue = 50,
-    Callback = function(v)
-        if LocalPlayer.Character then
-            LocalPlayer.Character.Humanoid.UseJumpPower = true
-            LocalPlayer.Character.Humanoid.JumpPower = v
-        end
-    end,
+    Callback = function(v) if LocalPlayer.Character then LocalPlayer.Character.Humanoid.JumpPower = v end end
 })
 
 ExtraTab:CreateSlider({
-    Name = "Kích Thước Hitbox (Combat Range)",
+    Name = "Kích Thước Hitbox (Range)",
     Range = {1, 100},
     Increment = 1,
     CurrentValue = 1,
     Callback = function(v)
-        QuanHub_Registry.Settings.HitboxSize = v
         spawn(function()
             while true do
                 pcall(function()
                     for _, p in pairs(Players:GetPlayers()) do
                         if p ~= LocalPlayer and p.Character then
-                            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                hrp.Size = Vector3.new(v, v, v)
-                                hrp.Transparency = 0.7
-                                hrp.CanCollide = false
-                            end
+                            p.Character.HumanoidRootPart.Size = Vector3.new(v, v, v)
+                            p.Character.HumanoidRootPart.Transparency = 0.7
+                            p.Character.HumanoidRootPart.CanCollide = false
                         end
                     end
                 end)
                 task.wait(2)
             end
         end)
-    end,
+    end
 })
 
 ---------------------------------------------------------------------------
@@ -375,48 +405,31 @@ ExtraTab:CreateSlider({
 ---------------------------------------------------------------------------
 SettingTab:CreateSection("Thông Tin Script")
 SettingTab:CreateLabel("👤 Tác giả: Quan_blacklock")
-SettingTab:CreateLabel("🛡️ Phiên bản: Public Ultimate V1.3")
-
-SettingTab:CreateSection("Trạng Thái Hệ Thống")
-SettingTab:CreateLabel("🟢 Giao diện được tối ưu hóa toàn diện.")
-SettingTab:CreateLabel("🔴 Vui lòng không thực hiện hành vi Reverse Engineering.")
+SettingTab:CreateLabel("🎮 Phiên bản: Public Ultimate V1.3.5")
+SettingTab:CreateLabel("📱 Feature 16: WASD Mobile by Iro")
+SettingTab:CreateSection("Ghi chú")
+SettingTab:CreateLabel("Ấn E trên bàn phím/keyboard ảo để ẩn menu.")
 
 ---------------------------------------------------------------------------
--- [ PHẦN 9: GIÁM SÁT NGẦM (HIDDEN LOGIC) ]
+-- [ PHẦN 9: TỐI ƯU HỆ THỐNG ]
 ---------------------------------------------------------------------------
 spawn(function()
-    while task.wait(300) do
-        collectgarbage("collect")
-    end
+    while task.wait(300) do collectgarbage("collect") end
 end)
-
--- LOGIC XỬ LÝ NHÂN VẬT KHI HỒI SINH
-local function LifeWatcher()
-    LocalPlayer.CharacterAdded:Connect(function(char)
-        task.wait(1.5)
-        GlobalNotify("Quân Hub", "Sẵn sàng cho cuộc săn mới.")
-    end)
-end
-spawn(LifeWatcher)
 
 ---------------------------------------------------------------------------
 -- [ PHẦN 10: KHỞI ĐỘNG HỆ THỐNG ]
 ---------------------------------------------------------------------------
 local function Boot()
-    local msg = [[
-    -------------------------------------------------------
-    QUÂN HUB V1.3 - HIDDEN KEYBIND MODE
-    DEVELOPER: QUAN_BLACKLOCK
-    BUILD: 490+ LINES OF CODE
-    -------------------------------------------------------
-    ]]
-    print(msg)
-    GlobalNotify("Kích hoạt", "Quân Hub V1.3 đã chiếm quyền kiểm soát!")
+    print("-------------------------------------------------------")
+    print("QUÂN HUB V1.3.5 - FULL DETAILED EDITION")
+    print("DEVELOPER: QUAN_BLACKLOCK")
+    print("LINES OF CODE: 550+")
+    print("-------------------------------------------------------")
+    Notify("Chào mừng", "Quân Hub V1.3.5 đã sẵn sàng phục vụ!")
 end
 
 Boot()
 
--- [[ DÒNG CODE CHỐT - 2026 QUAN_BLACKLOCK ]] --
--- // KHÔNG HIỆN THÔNG BÁO HƯỚNG DẪN ĐÓNG MENU // --
--- // PHÍM TẮT MẶC ĐỊNH LÀ E (BÍ MẬT) // --
+-- [[ HẾT MÃ NGUỒN - COPYRIGHT 2026 QUAN_BLACKLOCK ]] --
 ---------------------------------------------------------------------------
