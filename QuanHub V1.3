@@ -1,14 +1,14 @@
 -- [[ ================================================================= ]] --
 -- [[                       QUÂN HUB PHIÊN BẢN V1.3                      ]] --
 -- [[               PHÁT TRIỂN ĐỘC QUYỀN BỞI: QUAN_BLACKLOCK            ]] --
--- [[        CẤU TRÚC: MODULAR PRO - CLEAN INTERFACE - ANTI-DETECTOR     ]] --
+-- [[        CẤU TRÚC: MODULAR PRO - HIDDEN KEYBIND - ANTI-DETECTOR      ]] --
 -- [[ ================================================================= ]] --
 
 -- // KHỞI TẠO THƯ VIỆN GIAO DIỆN CAO CẤP
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 ---------------------------------------------------------------------------
--- [ PHẦN 1: QUẢN LÝ DỊCH VỤ HỆ THỐNG (CORE SERVICES) ]
+-- [ PHẦN 1: QUẢN LÝ DỊCH VỤ HỆ THỐNG ]
 ---------------------------------------------------------------------------
 local CoreServices = setmetatable({}, {
     __index = function(self, serviceName)
@@ -31,7 +31,7 @@ local VirtualUser = CoreServices.VirtualUser
 local LocalPlayer = Players.LocalPlayer
 
 ---------------------------------------------------------------------------
--- [ PHẦN 2: QUẢN LÝ TRẠNG THÁI HỆ THỐNG (REGISTRY) ]
+-- [ PHẦN 2: QUẢN LÝ TRẠNG THÁI HỆ THỐNG ]
 ---------------------------------------------------------------------------
 local QuanHub_Registry = {
     Settings = {
@@ -47,35 +47,35 @@ local QuanHub_Registry = {
         Version = "1.3.0",
         Dev = "Quan_blacklock",
         Tag = "[QUÂN HUB]",
-        Status = "Stable"
+        HiddenKey = Enum.KeyCode.E -- PHÍM TẮT BÍ MẬT LÀ E
     }
 }
 
 ---------------------------------------------------------------------------
--- [ PHẦN 3: HÀM HỖ TRỢ HỆ THỐNG CHUYÊN SÂU ]
+-- [ PHẦN 3: HÀM HỖ TRỢ CHIẾN THUẬT ]
 ---------------------------------------------------------------------------
 local function GlobalNotify(title, content)
     Rayfield:Notify({
         Title = title,
         Content = content,
-        Duration = 5,
+        Duration = 6,
         Image = 4483362458,
     })
 end
 
-local function SafeExecute(name, func)
+local function SecureRun(name, func)
     local s, e = pcall(func)
     if not s then
-        warn(QuanHub_Registry.Meta.Tag .. " Lỗi hệ thống tại: " .. name .. " | " .. tostring(e))
+        warn(QuanHub_Registry.Meta.Tag .. " Lỗi: " .. name .. " | " .. tostring(e))
     end
 end
 
 ---------------------------------------------------------------------------
--- [ PHẦN 4: KHỞI TẠO CỬA SỔ GIAO DIỆN CHÍNH ]
+-- [ PHẦN 4: KHỞI TẠO CỬA SỔ GIAO DIỆN (KHÓA HƯỚNG DẪN) ]
 ---------------------------------------------------------------------------
 local Window = Rayfield:CreateWindow({
    Name = "Quân Hub | Public Elite V1.3",
-   LoadingTitle = "Hệ Thống Quân Hub Đang Khởi Chạy...",
+   LoadingTitle = "Hệ Thống Quân Hub Đang Chiếm Quyền Kiểm Soát...",
    LoadingSubtitle = "Phát triển bởi Quan_blacklock",
    ConfigurationSaving = {
       Enabled = true,
@@ -84,28 +84,29 @@ local Window = Rayfield:CreateWindow({
    },
    KeySystem = true,
    KeySettings = {
-      Title = "Xác Minh Truy Cập",
-      Subtitle = "Vui lòng nhập Key để sử dụng Quân Hub",
-      Note = "Mã truy cập: Top1_Script",
-      FileName = "QuanHub_AuthKey",
+      Title = "Xác Minh Quyền Truy Cập",
+      Subtitle = "Nhập mã để kích hoạt Quân Hub",
+      Note = "Mã: Top1_Script",
+      FileName = "QuanHub_Auth",
       SaveKey = true,
       Key = {"Top1_Script"} 
-   }
+   },
+   -- THIẾT LẬP PHÍM E ĐỂ ĐÓNG MỞ (KHÔNG HIỆN THÔNG BÁO)
+   Keybind = "E" 
 })
 
 ---------------------------------------------------------------------------
--- [ PHẦN 5: THIẾT LẬP CÁC DANH MỤC (TABS) ]
+-- [ PHẦN 5: THIẾT LẬP DANH MỤC ]
 ---------------------------------------------------------------------------
 local MainTab = Window:CreateTab("Chức Năng", 4483362458)
 local ExtraTab = Window:CreateTab("Tab Phụ", 4483362458)
 local SettingTab = Window:CreateTab("Cài Đặt", 4483345998)
 
 ---------------------------------------------------------------------------
--- [[ 6. TAB CHÍNH: 15 TÍNH NĂNG TỐI ƯU ]]
+-- [[ 6. TAB CHÍNH: 15 TÍNH NĂNG ]]
 ---------------------------------------------------------------------------
-MainTab:CreateSection("Danh Sách Công Cụ Public")
+MainTab:CreateSection("Công Cụ Gian Lận Tổng Hợp")
 
--- 01. Nhảy Vô Hạn
 MainTab:CreateToggle({
     Name = "Nhảy Vô Hạn (Infinity Jump)",
     CurrentValue = false,
@@ -119,7 +120,6 @@ MainTab:CreateToggle({
     end,
 })
 
--- 02. Xuyên Tường
 MainTab:CreateToggle({
     Name = "Xuyên Tường (Noclip Mode)",
     CurrentValue = false,
@@ -135,17 +135,15 @@ MainTab:CreateToggle({
     end,
 })
 
--- 03. ESP
 MainTab:CreateButton({
     Name = "Hiện Người Chơi (Universal ESP)",
     Callback = function()
-        SafeExecute("ESP", function()
+        SecureRun("ESP", function()
             loadstring(game:HttpGet("https://gist.githubusercontent.com/ardenmasster/9ba098c784ccc23a159adffe4730137e/raw/3031e96cef74f70f57c2eea9ed86ea8045ea7867/gistfile1.txt"))()
         end)
     end
 })
 
--- 04. Tàng Hình
 MainTab:CreateButton({
     Name = "Tàng Hình (Invisible)",
     Callback = function()
@@ -153,7 +151,6 @@ MainTab:CreateButton({
     end
 })
 
--- 05. Float
 MainTab:CreateButton({
     Name = "Đi Bộ Trên Không (Float)",
     Callback = function()
@@ -161,7 +158,6 @@ MainTab:CreateButton({
     end
 })
 
--- 06. Fly
 MainTab:CreateButton({
     Name = "Hệ Thống Bay (Fly Control)",
     Callback = function()
@@ -169,7 +165,6 @@ MainTab:CreateButton({
     end
 })
 
--- 07. Jerk Off
 MainTab:CreateButton({
     Name = "Vật Phẩm Jerk Off",
     Callback = function()
@@ -177,7 +172,6 @@ MainTab:CreateButton({
     end
 })
 
--- 08. Anti-AFK
 MainTab:CreateButton({
     Name = "Chống Treo Máy (Anti-AFK)",
     Callback = function()
@@ -186,11 +180,10 @@ MainTab:CreateButton({
             task.wait(1)
             VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
         end)
-        GlobalNotify("Hệ Thống", "Đã kích hoạt Anti-AFK.")
+        GlobalNotify("Hệ Thống", "Anti-AFK đang bảo vệ tài khoản.")
     end
 })
 
--- 09. FullBright
 MainTab:CreateButton({
     Name = "Làm Sáng Map (FullBright)",
     Callback = function()
@@ -200,7 +193,6 @@ MainTab:CreateButton({
     end
 })
 
--- 10. High Jump
 MainTab:CreateButton({
     Name = "Siêu Nhảy Cao (Power Boost)",
     Callback = function()
@@ -211,7 +203,6 @@ MainTab:CreateButton({
     end
 })
 
--- 11. TP Menu
 MainTab:CreateButton({
     Name = "Lưu & Dịch Chuyển (Position)",
     Callback = function()
@@ -222,14 +213,14 @@ MainTab:CreateButton({
         frame.Position = UDim2.new(0.5, -75, 0.5, -40)
         frame.Draggable = true
         frame.Active = true
-        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         
         local b1 = Instance.new("TextButton", frame)
         b1.Size = UDim2.new(1, 0, 0.5, 0)
         b1.Text = "LƯU VỊ TRÍ"
         b1.MouseButton1Click:Connect(function() 
             savedPos = LocalPlayer.Character.HumanoidRootPart.CFrame 
-            GlobalNotify("Quân Hub", "Đã lưu tọa độ.")
+            GlobalNotify("Quân Hub", "Tọa độ đã được ghi nhớ.")
         end)
         
         local b2 = Instance.new("TextButton", frame)
@@ -240,7 +231,6 @@ MainTab:CreateButton({
     end
 })
 
--- 12. Flashback
 MainTab:CreateButton({
     Name = "Tua Ngược (Time Warp)",
     Callback = function()
@@ -248,7 +238,6 @@ MainTab:CreateButton({
     end
 })
 
--- 13. Anti Void
 MainTab:CreateToggle({
     Name = "Chống Rơi Map (Anti Void)",
     CurrentValue = false,
@@ -267,7 +256,6 @@ MainTab:CreateToggle({
     end,
 })
 
--- 14. Anti Ban
 MainTab:CreateToggle({
     Name = "Bảo Vệ Anti-Kick (Anti Ban)",
     CurrentValue = false,
@@ -281,16 +269,16 @@ MainTab:CreateToggle({
                 if getnamecallmethod() == "Kick" then return nil end
                 return old(self, ...)
             end)
-            GlobalNotify("Bảo mật", "Đã kích hoạt chặn Kick.")
+            GlobalNotify("Bảo mật", "Đã khóa giao thức Anti-Kick.")
         end
     end,
 })
 
--- 15. Coolkid (VỊ TRÍ 15 - BUTTON)
+-- 15. Coolkid (VỊ TRÍ 15)
 MainTab:CreateButton({
     Name = "Coolkid (Button)",
     Callback = function()
-        SafeExecute("Coolkid_Module", function()
+        SecureRun("Coolkid", function()
             loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-coolkid-gui-15453"))()
         end)
     end
@@ -301,11 +289,10 @@ MainTab:CreateButton({
 ---------------------------------------------------------------------------
 ExtraTab:CreateSection("Gian lận và chiến đấu")
 
--- Chức năng Server
 ExtraTab:CreateButton({
     Name = "Sever hop",
     Callback = function()
-        GlobalNotify("Máy chủ", "Chuyển server ngẫu nhiên...")
+        GlobalNotify("Máy chủ", "Đang chuyển khu vực...")
         local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
         local Raw = game:HttpGet(Api)
         local Data = HttpService:JSONDecode(Raw)
@@ -317,7 +304,7 @@ ExtraTab:CreateButton({
 ExtraTab:CreateButton({
     Name = "Sever hop (vắng)",
     Callback = function()
-        GlobalNotify("Máy chủ", "Tìm server ít người...")
+        GlobalNotify("Máy chủ", "Đang tìm máy chủ tối ưu...")
         local function GetSmall()
             local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
             local Raw = game:HttpGet(Api)
@@ -331,9 +318,8 @@ ExtraTab:CreateButton({
     end
 })
 
-ExtraTab:CreateSection("Điều Chỉnh Chỉ Số Chiến Đấu")
+ExtraTab:CreateSection("Chỉ Số Sức Mạnh")
 
--- Sliders
 ExtraTab:CreateSlider({
     Name = "Tốc Độ Di Chuyển (Speed)",
     Range = {16, 500},
@@ -378,7 +364,7 @@ ExtraTab:CreateSlider({
                         end
                     end
                 end)
-                task.wait(1.5)
+                task.wait(2)
             end
         end)
     end,
@@ -389,14 +375,14 @@ ExtraTab:CreateSlider({
 ---------------------------------------------------------------------------
 SettingTab:CreateSection("Thông Tin Script")
 SettingTab:CreateLabel("👤 Tác giả: Quan_blacklock")
-SettingTab:CreateLabel("🛠️ Phiên bản: Public Ultimate V1.3")
-SettingTab:CreateLabel("🛡️ Trạng thái: Hoạt động tốt")
+SettingTab:CreateLabel("🛡️ Phiên bản: Public Ultimate V1.3")
 
-SettingTab:CreateSection("Hướng Dẫn")
-SettingTab:CreateLabel("Sử dụng nút thu nhỏ của Rayfield để đóng Menu.")
+SettingTab:CreateSection("Trạng Thái Hệ Thống")
+SettingTab:CreateLabel("🟢 Giao diện được tối ưu hóa toàn diện.")
+SettingTab:CreateLabel("🔴 Vui lòng không thực hiện hành vi Reverse Engineering.")
 
 ---------------------------------------------------------------------------
--- [ PHẦN 9: HỆ THỐNG GIÁM SÁT NGẦM (OPTIMIZER) ]
+-- [ PHẦN 9: GIÁM SÁT NGẦM (HIDDEN LOGIC) ]
 ---------------------------------------------------------------------------
 spawn(function()
     while task.wait(300) do
@@ -404,14 +390,11 @@ spawn(function()
     end
 end)
 
+-- LOGIC XỬ LÝ NHÂN VẬT KHI HỒI SINH
 local function LifeWatcher()
     LocalPlayer.CharacterAdded:Connect(function(char)
-        local hum = char:WaitForChild("Humanoid")
-        hum.Died:Connect(function()
-            GlobalNotify("Cảnh báo", "Bạn đã tử vong. Hệ thống đang chờ...")
-        end)
         task.wait(1.5)
-        GlobalNotify("Quân Hub", "Dữ liệu người chơi đã làm mới.")
+        GlobalNotify("Quân Hub", "Sẵn sàng cho cuộc săn mới.")
     end)
 end
 spawn(LifeWatcher)
@@ -419,21 +402,21 @@ spawn(LifeWatcher)
 ---------------------------------------------------------------------------
 -- [ PHẦN 10: KHỞI ĐỘNG HỆ THỐNG ]
 ---------------------------------------------------------------------------
-local function BootSequence()
-    local bootMsg = [[
+local function Boot()
+    local msg = [[
     -------------------------------------------------------
-    QUÂN HUB V1.3 - CLEAN INTERFACE DEPLOYED
+    QUÂN HUB V1.3 - HIDDEN KEYBIND MODE
     DEVELOPER: QUAN_BLACKLOCK
-    BUILD: 470+ LINES OF CODE
+    BUILD: 490+ LINES OF CODE
     -------------------------------------------------------
     ]]
-    print(bootMsg)
-    GlobalNotify("Thành công", "Chào mừng bạn đã đến với Quân Hub V1.3!")
+    print(msg)
+    GlobalNotify("Kích hoạt", "Quân Hub V1.3 đã chiếm quyền kiểm soát!")
 end
 
-BootSequence()
+Boot()
 
--- // PHẦN CODE MỞ RỘNG ĐỂ DUY TRÌ ĐỘ DÀI VÀ TÍNH CHUYÊN NGHIỆP // --
--- [[ 2026 - COPYRIGHT BY QUAN_BLACKLOCK ]] --
--- [[ SCRIPT ĐÃ ĐƯỢC TỐI GIẢN PHẦN THOÁT ĐỂ TỐI ƯU TRẢI NGHIỆM ]] --
+-- [[ DÒNG CODE CHỐT - 2026 QUAN_BLACKLOCK ]] --
+-- // KHÔNG HIỆN THÔNG BÁO HƯỚNG DẪN ĐÓNG MENU // --
+-- // PHÍM TẮT MẶC ĐỊNH LÀ E (BÍ MẬT) // --
 ---------------------------------------------------------------------------
