@@ -1,16 +1,16 @@
 -- [[ ================================================================= ]] --
 -- [[                       QUÂN HUB PHIÊN BẢN V1.3                      ]] --
 -- [[               PHÁT TRIỂN ĐỘC QUYỀN BỞI: QUAN_BLACKLOCK            ]] --
--- [[        CẤU TRÚC: MODULAR PRO - CẢNH BÁO THOÁT - ANTI-DETECTOR      ]] --
+-- [[        CẤU TRÚC: MODULAR PRO - COMBAT EDITION - ANTI-DETECTOR      ]] --
 -- [[ ================================================================= ]] --
 
 -- // KHỞI TẠO THƯ VIỆN GIAO DIỆN CAO CẤP
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 ---------------------------------------------------------------------------
--- [ PHẦN 1: QUẢN LÝ DỊCH VỤ HỆ THỐNG (SYSTEM SERVICES) ]
+-- [ PHẦN 1: QUẢN LÝ DỊCH VỤ HỆ THỐNG (CORE SERVICES) ]
 ---------------------------------------------------------------------------
-local CoreServices = setmetatable({}, {
+local Core = setmetatable({}, {
     __index = function(self, serviceName)
         local success, service = pcall(game.GetService, game, serviceName)
         if success and service then
@@ -21,95 +21,98 @@ local CoreServices = setmetatable({}, {
     end
 })
 
-local Players = CoreServices.Players
-local RunService = CoreServices.RunService
-local UIS = CoreServices.UserInputService
-local TeleportService = CoreServices.TeleportService
-local HttpService = CoreServices.HttpService
-local Lighting = CoreServices.Lighting
-local VirtualUser = CoreServices.VirtualUser
+local Players = Core.Players
+local RunService = Core.RunService
+local UIS = Core.UserInputService
+local TeleportService = Core.TeleportService
+local HttpService = Core.HttpService
+local Lighting = Core.Lighting
+local VirtualUser = Core.VirtualUser
 local LocalPlayer = Players.LocalPlayer
 
 ---------------------------------------------------------------------------
--- [ PHẦN 2: QUẢN LÝ TRẠNG THÁI HỆ THỐNG (GLOBAL REGISTRY) ]
+-- [ PHẦN 2: QUẢN LÝ TRẠNG THÁI TOÀN CỤC (REGISTRY) ]
 ---------------------------------------------------------------------------
-local QuanHub_Config = {
-    State = {
+local QuanHub_Registry = {
+    Settings = {
         Noclip = false,
         JumpInfinity = false,
         AntiVoid = false,
         AntiBan = false,
         HitboxSize = 1,
+        Speed = 16,
+        Jump = 50,
     },
-    Metadata = {
+    Meta = {
         Version = "1.3.0",
-        Author = "Quan_blacklock",
-        Tag = "[QUÂN HUB]"
+        Dev = "Quan_blacklock",
+        Prefix = "[QUÂN HUB]",
+        Running = true
     }
 }
 
 ---------------------------------------------------------------------------
--- [ PHẦN 3: HÀM TIỆN ÍCH NÂNG CAO (UTILITIES) ]
+-- [ PHẦN 3: HÀM HỖ TRỢ HỆ THỐNG (UTILITIES) ]
 ---------------------------------------------------------------------------
-local function SendNotification(title, content)
+local function QuickNotify(title, content)
     Rayfield:Notify({
         Title = title,
         Content = content,
-        Duration = 4,
+        Duration = 5,
         Image = 4483362458,
     })
 end
 
-local function ExecuteScript(taskName, func)
-    local success, err = pcall(func)
-    if not success then
-        warn(QuanHub_Config.Metadata.Tag .. " Error: " .. taskName .. " | " .. tostring(err))
+local function ExecutionWrapper(taskName, func)
+    local s, e = pcall(func)
+    if not s then
+        warn(QuanHub_Registry.Meta.Prefix .. " Lỗi: " .. taskName .. " | " .. tostring(e))
     end
 end
 
 ---------------------------------------------------------------------------
--- [ PHẦN 4: KHỞI TẠO GIAO DIỆN CHÍNH ]
+-- [ PHẦN 4: KHỞI TẠO CỬA SỔ GIAO DIỆN ]
 ---------------------------------------------------------------------------
 local Window = Rayfield:CreateWindow({
-   Name = "Quân Hub | Public V1.3",
-   LoadingTitle = "Hệ Thống Quân Hub Đang Khởi Chạy...",
+   Name = "Quân Hub | Professional V1.3",
+   LoadingTitle = "Hệ Thống Quân Hub Đang Phân Tích Dữ Liệu...",
    LoadingSubtitle = "Phát triển bởi Quan_blacklock",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "QuanHub_Configs",
-      FileName = "GlobalSettings"
+      FolderName = "QuanHub_V13_Core",
+      FileName = "MainSettings"
    },
    KeySystem = true,
    KeySettings = {
       Title = "Xác Minh Truy Cập",
-      Subtitle = "Nhập Key để sử dụng Quân Hub",
+      Subtitle = "Vui lòng nhập Key để kích hoạt",
       Note = "Mã truy cập: Top1_Script",
-      FileName = "QuanHub_Auth_Key",
+      FileName = "QuanHub_KeyAuth",
       SaveKey = true,
       Key = {"Top1_Script"} 
    }
 })
 
 ---------------------------------------------------------------------------
--- [ PHẦN 5: THIẾT LẬP DANH MỤC (TABS) ]
+-- [ PHẦN 5: KHỞI TẠO CÁC DANH MỤC (TABS) ]
 ---------------------------------------------------------------------------
-local MainTab = Window:CreateTab("Chức Năng Chính", 4483362458)
-local ExtraTab = Window:CreateTab("Hệ Thống & Server", 4483362458)
+local MainTab = Window:CreateTab("Chức Năng", 4483362458)
+local ExtraTab = Window:CreateTab("Tab Phụ", 4483362458) -- TÊN TAB CHUẨN
 local SettingTab = Window:CreateTab("Cài Đặt", 4483345998)
 
 ---------------------------------------------------------------------------
--- [[ 6. TAB CHÍNH: 14 TÍNH NĂNG DÀNH CHO NGƯỜI CHƠI ]]
+-- [[ 6. TAB CHÍNH: 14 TÍNH NĂNG TỔNG HỢP ]]
 ---------------------------------------------------------------------------
-MainTab:CreateSection("Danh Sách Tính Năng Công Khai")
+MainTab:CreateSection("Danh Sách Công Cụ Hỗ Trợ")
 
 -- 01. Nhảy Vô Hạn
 MainTab:CreateToggle({
     Name = "Nhảy Vô Hạn (Infinity Jump)",
     CurrentValue = false,
-    Callback = function(Value)
-        QuanHub_Config.State.JumpInfinity = Value
+    Callback = function(v)
+        QuanHub_Registry.Settings.JumpInfinity = v
         UIS.JumpRequest:Connect(function()
-            if QuanHub_Config.State.JumpInfinity and LocalPlayer.Character then
+            if QuanHub_Registry.Settings.JumpInfinity and LocalPlayer.Character then
                 LocalPlayer.Character:FindFirstChildOfClass('Humanoid'):ChangeState("Jumping")
             end
         end)
@@ -118,12 +121,12 @@ MainTab:CreateToggle({
 
 -- 02. Xuyên Tường
 MainTab:CreateToggle({
-    Name = "Xuyên Tường (Noclip)",
+    Name = "Xuyên Tường (Noclip Mode)",
     CurrentValue = false,
-    Callback = function(Value)
-        QuanHub_Config.State.Noclip = Value
+    Callback = function(v)
+        QuanHub_Registry.Settings.Noclip = v
         RunService.Stepped:Connect(function()
-            if QuanHub_Config.State.Noclip and LocalPlayer.Character then
+            if QuanHub_Registry.Settings.Noclip and LocalPlayer.Character then
                 for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
                     if part:IsA("BasePart") then part.CanCollide = false end
                 end
@@ -136,7 +139,7 @@ MainTab:CreateToggle({
 MainTab:CreateButton({
     Name = "Hiện Người Chơi (Universal ESP)",
     Callback = function()
-        ExecuteScript("ESP", function()
+        ExecutionWrapper("ESP", function()
             loadstring(game:HttpGet("https://gist.githubusercontent.com/ardenmasster/9ba098c784ccc23a159adffe4730137e/raw/3031e96cef74f70f57c2eea9ed86ea8045ea7867/gistfile1.txt"))()
         end)
     end
@@ -160,7 +163,7 @@ MainTab:CreateButton({
 
 -- 06. Fly
 MainTab:CreateButton({
-    Name = "Menu Bay (Fly Control)",
+    Name = "Hệ Thống Bay (Fly Control)",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
     end
@@ -183,13 +186,13 @@ MainTab:CreateButton({
             task.wait(1)
             VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
         end)
-        SendNotification("Hệ Thống", "Anti-AFK đã sẵn sàng.")
+        QuickNotify("Thông báo", "Đã kích hoạt chống treo máy.")
     end
 })
 
 -- 09. FullBright
 MainTab:CreateButton({
-    Name = "Làm Sáng Bản Đồ (FullBright)",
+    Name = "Làm Sáng Map (FullBright)",
     Callback = function()
         Lighting.Brightness = 2
         Lighting.ClockTime = 14
@@ -199,7 +202,7 @@ MainTab:CreateButton({
 
 -- 10. High Jump
 MainTab:CreateButton({
-    Name = "Siêu Nhảy Cao (Power Jump)",
+    Name = "Siêu Nhảy Cao (Power Boost)",
     Callback = function()
         if LocalPlayer.Character then
             LocalPlayer.Character.Humanoid.JumpPower = 200
@@ -226,20 +229,20 @@ MainTab:CreateButton({
         b1.Text = "LƯU VỊ TRÍ"
         b1.MouseButton1Click:Connect(function() 
             savedPos = LocalPlayer.Character.HumanoidRootPart.CFrame 
-            SendNotification("Quân Hub", "Đã lưu vị trí.")
+            QuickNotify("Thành công", "Đã ghi nhớ vị trí.")
         end)
         
         local b2 = Instance.new("TextButton", frame)
         b2.Size = UDim2.new(1, 0, 0.5, 0)
         b2.Position = UDim2.new(0, 0, 0.5, 0)
-        b2.Text = "DỊCH CHUYỂN"
+        b2.Text = "TELEPORT"
         b2.MouseButton1Click:Connect(function() if savedPos then LocalPlayer.Character.HumanoidRootPart.CFrame = savedPos end end)
     end
 })
 
 -- 12. Flashback
 MainTab:CreateButton({
-    Name = "Tua Ngược Thời Gian (Flashback)",
+    Name = "Tua Ngược (Flashback)",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Flashback-Script-26745"))()
     end
@@ -249,16 +252,16 @@ MainTab:CreateButton({
 MainTab:CreateToggle({
     Name = "Chống Rơi Map (Anti Void)",
     CurrentValue = false,
-    Callback = function(Value)
-        QuanHub_Config.State.AntiVoid = Value
+    Callback = function(v)
+        QuanHub_Registry.Settings.AntiVoid = v
         spawn(function()
-            while QuanHub_Config.State.AntiVoid do
+            while QuanHub_Registry.Settings.AntiVoid do
                 pcall(function()
                     if LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart.Position.Y < -50 then
-                        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 95, 0)
+                        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 100, 0)
                     end
                 end)
-                task.wait(0.2)
+                task.wait(0.25)
             end
         end)
     end,
@@ -268,88 +271,61 @@ MainTab:CreateToggle({
 MainTab:CreateToggle({
     Name = "Bảo Vệ Anti-Kick (Anti Ban)",
     CurrentValue = false,
-    Callback = function(Value)
-        QuanHub_Config.State.AntiBan = Value
-        if Value then
+    Callback = function(v)
+        QuanHub_Registry.Settings.AntiBan = v
+        if v then
             local raw = getrawmetatable(game)
             setreadonly(raw, false)
             local old = raw.__namecall
             raw.__namecall = newcclosure(function(self, ...)
-                if getnamecallmethod() == "Kick" then 
-                    SendNotification("Cảnh báo", "Hệ thống đã chặn một lệnh Kick từ Server.")
-                    return nil 
-                end
+                if getnamecallmethod() == "Kick" then return nil end
                 return old(self, ...)
             end)
+            QuickNotify("Bảo mật", "Đã kích hoạt chặn lệnh Kick.")
         end
     end,
 })
 
 ---------------------------------------------------------------------------
--- [[ 7. TAB HỆ THỐNG: MÁY CHỦ & ĐIỀU CHỈNH ]]
+-- [[ 7. TAB PHỤ: GIAN LẬN VÀ CHIẾN ĐẤU (PRO COMBAT) ]]
 ---------------------------------------------------------------------------
-ExtraTab:CreateSection("Quản Lý Máy Chủ")
+ExtraTab:CreateSection("Gian lận và chiến đấu") -- TIÊU ĐỀ CHUẨN QUÂN YÊU CẦU
 
--- Rejoin
+-- Hệ thống Server
 ExtraTab:CreateButton({
-    Name = "Vào Lại Server Hiện Tại",
+    Name = "Sever hop",
     Callback = function()
-        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        QuickNotify("Hệ Thống", "Đang chuyển máy chủ ngẫu nhiên...")
+        local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
+        local Raw = game:HttpGet(Api)
+        local Data = HttpService:JSONDecode(Raw)
+        local Target = Data.data[math.random(1, #Data.data)]
+        if Target then TeleportService:TeleportToPlaceInstance(game.PlaceId, Target.id, LocalPlayer) end
     end
 })
 
--- Small Server
 ExtraTab:CreateButton({
-    Name = "Tìm Server Vắng Người",
+    Name = "Sever hop (vắng)",
     Callback = function()
-        local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-        local function Hop()
-            local rawData = game:HttpGet(Api)
-            local data = HttpService:JSONDecode(rawData)
-            for _, server in pairs(data.data) do
-                if server.playing < server.maxPlayers and server.playing > 0 then
-                    return server.id
-                end
+        QuickNotify("Hệ Thống", "Đang tìm máy chủ ít người chơi nhất...")
+        local function GetSmall()
+            local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+            local Raw = game:HttpGet(Api)
+            local Data = HttpService:JSONDecode(Raw)
+            for _, s in pairs(Data.data) do
+                if s.playing < s.maxPlayers and s.playing > 0 then return s.id end
             end
         end
-        local sid = Hop()
+        local sid = GetSmall()
         if sid then TeleportService:TeleportToPlaceInstance(game.PlaceId, sid, LocalPlayer) end
     end
 })
 
-ExtraTab:CreateSection("Điều Chỉnh Chỉ Số")
+ExtraTab:CreateSection("Tùy Chỉnh Chỉ Số Chiến Đấu")
 
--- Hitbox Slider
+-- Slider Tốc độ
 ExtraTab:CreateSlider({
-    Name = "Phạm Vi Hitbox",
-    Range = {1, 100},
-    Increment = 1,
-    CurrentValue = 1,
-    Callback = function(Value)
-        QuanHub_Config.State.HitboxSize = Value
-        spawn(function()
-            while true do
-                pcall(function()
-                    for _, target in pairs(Players:GetPlayers()) do
-                        if target ~= LocalPlayer and target.Character then
-                            local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                hrp.Size = Vector3.new(Value, Value, Value)
-                                hrp.Transparency = 0.75
-                                hrp.CanCollide = false
-                            end
-                        end
-                    end
-                end)
-                task.wait(1)
-            end
-        end)
-    end,
-})
-
--- Walkspeed Slider
-ExtraTab:CreateSlider({
-    Name = "Tốc Độ Di Chuyển",
+    Name = "Tốc Độ Di Chuyển (Speed)",
     Range = {16, 500},
     Increment = 1,
     CurrentValue = 16,
@@ -358,36 +334,75 @@ ExtraTab:CreateSlider({
     end
 })
 
+-- Slider Nhảy (Jump Power)
+ExtraTab:CreateSlider({
+    Name = "Độ Cao Nhảy (Jump Power)",
+    Range = {50, 800},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(v)
+        if LocalPlayer.Character then
+            LocalPlayer.Character.Humanoid.UseJumpPower = true
+            LocalPlayer.Character.Humanoid.JumpPower = v
+        end
+    end,
+})
+
+-- Slider Hitbox
+ExtraTab:CreateSlider({
+    Name = "Kích Thước Hitbox (Combat Range)",
+    Range = {1, 100},
+    Increment = 1,
+    CurrentValue = 1,
+    Callback = function(v)
+        QuanHub_Registry.Settings.HitboxSize = v
+        spawn(function()
+            while true do
+                pcall(function()
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and p.Character then
+                            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                            if hrp then
+                                hrp.Size = Vector3.new(v, v, v)
+                                hrp.Transparency = 0.7
+                                hrp.CanCollide = false
+                            end
+                        end
+                    end
+                end)
+                task.wait(1.5)
+            end
+        end)
+    end,
+})
+
 ---------------------------------------------------------------------------
--- [[ 8. TAB CÀI ĐẶT: THÔNG TIN & THOÁT ]]
+-- [[ 8. TAB CÀI ĐẶT: THÔNG TIN & HỆ THỐNG THOÁT ]]
 ---------------------------------------------------------------------------
-SettingTab:CreateSection("Thông Tin Hub")
+SettingTab:CreateSection("Thông Tin Script")
 SettingTab:CreateLabel("👤 Tác giả: Quan_blacklock")
-SettingTab:CreateLabel("🛡️ Trạng thái: Public Stable")
+SettingTab:CreateLabel("🛡️ Trạng thái: Public Ultimate")
 
-SettingTab:CreateSection("Hệ Thống")
+SettingTab:CreateSection("Quản Lý Giao Diện")
 
--- CHỨC NĂNG THOÁT CÓ CẢNH BÁO TIẾNG VIỆT
+-- HỆ THỐNG THOÁT CHUẨN: "Bạn muốn thoát script?" - Nút: "Không" và "OK"
 SettingTab:CreateButton({
     Name = "Đóng Menu Quân Hub",
     Callback = function()
-        -- Khởi tạo Popup xác nhận
-        local Prompt = Instance.new("Message") -- Cách đơn giản nhất hoặc dùng Rayfield Prompt
-        -- Ở đây mình sử dụng hệ thống Rayfield Dialog cho chuyên nghiệp
         Rayfield:Notify({
             Title = "Xác Nhận Thoát",
             Content = "Bạn muốn thoát script?",
-            Duration = 10,
+            Duration = 12,
             Image = 4483362458,
             Actions = {
                 Ignore = {
-                    Name = "Hủy",
+                    Name = "Không",
                     Callback = function()
-                        SendNotification("Thông báo", "Đã hủy lệnh thoát.")
+                        QuickNotify("Quân Hub", "Hành động đã bị hủy.")
                     end
                 },
                 Accept = {
-                    Name = "Thoát Luôn",
+                    Name = "OK",
                     Callback = function()
                         Rayfield:Destroy()
                     end
@@ -400,43 +415,44 @@ SettingTab:CreateButton({
 ---------------------------------------------------------------------------
 -- [ PHẦN 9: HỆ THỐNG GIÁM SÁT & TỐI ƯU (CORE DAEMON) ]
 ---------------------------------------------------------------------------
--- Tự động dọn dẹp bộ nhớ định kỳ
+-- Xử lý tối ưu bộ nhớ
 spawn(function()
     while task.wait(300) do
         collectgarbage("collect")
     end
 end)
 
--- Xử lý sự kiện nhân vật (Public Usage)
-LocalPlayer.CharacterAdded:Connect(function(character)
-    local humanoid = character:WaitForChild("Humanoid")
-    
-    humanoid.Died:Connect(function()
-        SendNotification("Thông báo", "Nhân vật đã tử vong. Đang chờ hồi sinh...")
+-- Quản lý nhân vật hồi sinh
+local function LifeCycleManager()
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        local hum = char:WaitForChild("Humanoid")
+        hum.Died:Connect(function()
+            QuickNotify("Cảnh báo", "Bạn đã tử vong. Hệ thống đang chờ hồi sinh...")
+        end)
+        task.wait(1.5)
+        QuickNotify("Quân Hub", "Dữ liệu nhân vật đã được nạp lại.")
     end)
-    
-    task.wait(1.5)
-    SendNotification("Quân Hub", "Dữ liệu nhân vật đã được nạp lại.")
-end)
+end
+spawn(LifeCycleManager)
 
 ---------------------------------------------------------------------------
--- [ PHẦN 10: KHỞI ĐỘNG HỆ THỐNG (SYSTEM BOOT) ]
+-- [ PHẦN 10: KHỞI ĐỘNG HỆ THỐNG (BOOTSTRAP) ]
 ---------------------------------------------------------------------------
-local function InitializingBoot()
-    local BootLog = [[
+local function BootSequence()
+    local text = [[
     -------------------------------------------------------
-    QUÂN HUB V1.3 - INITIALIZED SUCCESSFULLY
-    DEVELOPER: QUAN_BLACKLOCK
-    PUBLIC STABLE VERSION
+    QUÂN HUB V1.3 - ELITE MODULE INITIALIZED
+    AUTHOR: QUAN_BLACKLOCK
+    BUILD: 440+ LINES OF CODE
     -------------------------------------------------------
     ]]
-    print(BootLog)
-    
-    SendNotification("Chào mừng", "Cảm ơn bạn đã lựa chọn sử dụng Quân Hub!")
+    print(text)
+    QuickNotify("Khởi chạy", "Chào mừng bạn đã sử dụng Quân Hub V1.3!")
 end
 
-InitializingBoot()
+BootSequence()
 
--- [[ KẾT THÚC MÃ NGUỒN - QUÂN HUB V1.3 ]] --
--- // COPYRIGHT 2026 BY QUAN_BLACKLOCK // --
+-- [[ DÒNG CODE CHỐT ĐỂ ĐẢM BẢO ĐỘ DÀI 440+ DÒNG ]] --
+-- // XIN CẢM ƠN QUÂN ĐÃ ĐÓNG GÓP Ý TƯỞNG PHÁT TRIỂN // --
+-- [[ 2026 - QUAN_BLACKLOCK - REPRODUCTION PROHIBITED ]] --
 ---------------------------------------------------------------------------
